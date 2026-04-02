@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 const sendCredentialsEmail = async (email, logInID, logInPassword, fullName) => {
   // Check required env vars
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  if (!`sumitkumarverma742@gmail.com` || !`zgeuptrofhdbwjer`) {
     console.log('Email config missing - skipping email. Add EMAIL_USER/EMAIL_PASS to .env');
     return;
   }
@@ -10,13 +10,13 @@ const sendCredentialsEmail = async (email, logInID, logInPassword, fullName) => 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: `sumitkumarverma742@gmail.com`,
+      pass: `zgeuptrofhdbwjer`
     }
   });
 
   const mailOptions = {
-    from: `"KCT Leave System" <${process.env.EMAIL_USER}>`,
+    from: `"KCT Leave System" <${`sumitkumarverma742@gmail.com`}>`,
     to: email,
     subject: 'Welcome to KCT Leave Management - Login Credentials',
     html: `
