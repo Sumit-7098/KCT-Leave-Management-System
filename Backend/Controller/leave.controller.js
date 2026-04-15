@@ -37,7 +37,7 @@ const getMyLeaves = async (req, res) => {
 
 const createLeave = async (req, res) => {
   try {
-    const { leaveType, startDate, endDate, reason } = req.body;
+    const { leaveType, startDate, endDate, reason, inTime, outTime } = req.body;
     const userId = req.user._id;
 
     // Validation
@@ -49,12 +49,22 @@ const createLeave = async (req, res) => {
       return res.status(400).json({ message: "Start date must be before end date" });
     }
 
+    // Additional validation for time-based leaves
+    const timeBasedTypes = ["Compensatory Off", "Gate Pass", "OD (On Duty)"];
+    if (timeBasedTypes.includes(leaveType)) {
+      if (!inTime || !outTime) {
+        return res.status(400).json({ message: "In time and out time are required for this leave type" });
+      }
+    }
+
     const leaveData = {
       user: userId,
       leaveType,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       reason,
+      ...(inTime && { inTime }),
+      ...(outTime && { outTime }),
       ...(req.file && { document: req.file.path })
     };
 

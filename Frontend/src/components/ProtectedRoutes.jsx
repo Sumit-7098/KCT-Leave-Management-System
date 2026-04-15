@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import Loader from './Loader';
 
 const ProtectedRoute = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -14,7 +15,9 @@ const ProtectedRoute = ({ children }) => {
     checkAuth();
   }, []);
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen bg-slate-100">Loading...</div>;
+  if (isLoading) return <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-8">
+    <Loader size={48} message="Checking authentication..." />
+  </div>;
   if (!isAuth) return <Navigate to="/login" replace />;
   return children;
 };

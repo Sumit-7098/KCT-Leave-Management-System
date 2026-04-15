@@ -29,7 +29,7 @@ export default function Sidebar({ setSidebarOpen }) {
 
   return (
     <>
-      <aside className="w-56 h-screen bg-white flex flex-col px-4 py-6 shadow-md shrink-0">
+      <aside className="w-56 h-screen bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm flex flex-col px-4 py-6 shadow-md dark:shadow-gray-900/50 shrink-0">
 
         {/* Logo + Close button on mobile */}
         <div className="flex items-center justify-between mb-8">
@@ -37,7 +37,7 @@ export default function Sidebar({ setSidebarOpen }) {
             <div className="bg-blue-700 text-white text-xs font-bold w-9 h-9 flex items-center justify-center rounded-lg shrink-0">
               <img src={KC} />
             </div>
-            <span className="text-sm font-bold text-slate-800 leading-tight">
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-tight">
               Kalyani Cast Tech Ltd
             </span>
           </div>
@@ -59,8 +59,8 @@ export default function Sidebar({ setSidebarOpen }) {
                 onClick={() => handleNav(item.path)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200
                   ${location.pathname === item.path
-                    ? "bg-blue-700 text-white shadow-md shadow-blue-200"
-                    : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                    ? "bg-blue-700 text-white shadow-md "
+                    : "text-slate-500 dark:text-white hover:bg-blue-50 hover:text-blue-600"
                   }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />

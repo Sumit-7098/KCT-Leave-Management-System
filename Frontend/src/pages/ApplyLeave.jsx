@@ -1,15 +1,26 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+<<<<<<< HEAD
 import { ChevronDown, Upload, Send, Calendar, Clock, User } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+=======
+import { ChevronDown, Upload, Send } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import LeaveRequestForm from "./forms/LeaveRequestForm";
+import CompensatoryOffForm from "./forms/CompensatoryOffForm";
+import GatePassForm from "./forms/GatePassForm";
+import OnDutyForm from "./forms/OnDutyForm";
+import Loader from "../components/Loader";
+
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
 const LEAVE_TYPES = [
   "Annual Leave",
   "Sick Leave",
   "Casual Leave",
-  "Maternity Leave",
-  "Paternity Leave",
   "Unpaid Leave",
 ];
 
@@ -63,7 +74,10 @@ export default function ApplyLeave() {
       if (!form.outTime) newErrors.outTime = "Out time is required";
       if (!form.startDate) newErrors.startDate = "Start date is required";
       if (!form.endDate) newErrors.endDate = "End date is required";
+<<<<<<< HEAD
       if (!form.reason.trim()) newErrors.reason = "Reason is required";
+=======
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
     } else if (activeTab === 2) {
       // Gate Pass
       if (!form.startDate) newErrors.startDate = "Date is required";
@@ -143,12 +157,26 @@ export default function ApplyLeave() {
   };
 
   const handleChange = (e) => {
+<<<<<<< HEAD
     setForm({ ...form, [e.target.name]: e.target.value });
+=======
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
   };
 
+<<<<<<< HEAD
+=======
+  const validateLeaveType = (type) => {
+    setForm(prev => ({ ...prev, leaveType: type }));
+    if (errors.leaveType) {
+      setErrors(prev => ({ ...prev, leaveType: "" }));
+    }
+  };
+
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.size > 5 * 1024 * 1024) {
@@ -162,7 +190,11 @@ export default function ApplyLeave() {
       toast.error("Only PDF and images allowed");
       return;
     }
+<<<<<<< HEAD
     setForm({ ...form, document: file });
+=======
+    setForm(prev => ({ ...prev, document: file }));
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
   };
 
   const handleDrop = (e) => {
@@ -187,7 +219,11 @@ export default function ApplyLeave() {
 
   if (submitted) {
     return (
+<<<<<<< HEAD
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 p-8">
+=======
+      <div className="flex flex-col items-center justify-center min-h-100 gap-6 p-8">
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
         <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center">
           <Send className="w-8 h-8 text-emerald-600" />
         </div>
@@ -207,18 +243,30 @@ export default function ApplyLeave() {
     );
   }
 
+<<<<<<< HEAD
   
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Apply for Leave</h1>
+=======
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">Apply for Leave</h1>
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
         <p className="text-sm text-slate-400 mt-1">
           Submit a new leave request
         </p>
       </div>
 
       {/* Tabs */}
+<<<<<<< HEAD
       <div className="flex flex-wrap gap-3">
+=======
+      <div className="flex flex-wrap -mx-1.5 gap-3 *:m-1.5!">
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
         {TABS.map((tab, index) => (
           <button
             key={tab}
@@ -226,6 +274,7 @@ export default function ApplyLeave() {
               setActiveTab(index);
               setForm({ ...form, leaveType: "", inTime: "", outTime: "" });
             }}
+<<<<<<< HEAD
             className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === index
                 ? "bg-blue-600 text-white shadow-md"
@@ -681,20 +730,114 @@ export default function ApplyLeave() {
             )}
           </button>
         </div>
+=======
+            className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === index
+            ? "bg-blue-600 text-white shadow-md"
+              : "bg-white dark:bg-gray-800/50 border border-slate-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-400 hover:shadow-sm text-slate-700 dark:text-slate-200"
+              }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Form Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-gray-700">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-2 h-8 bg-linear-to-b from-blue-500 to-blue-600 rounded-full" />
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+            {TABS[activeTab]}
+          </h3>
+        </div>
+
+        <div className="space-y-6">
+          {activeTab === 0 && (
+            <LeaveRequestForm
+              form={form}
+              errors={errors}
+              handleChange={handleChange}
+              handleFileChange={handleFileChange}
+              dragOver={dragOver}
+              setDragOver={setDragOver}
+              showDropdown={showDropdown}
+              setShowDropdown={setShowDropdown}
+              validateLeaveType={validateLeaveType}
+            />
+          )}
+          {activeTab === 1 && (
+            <CompensatoryOffForm
+              form={form}
+              errors={errors}
+              handleChange={handleChange}
+            />
+          )}
+          {activeTab === 2 && (
+            <GatePassForm
+              form={form}
+              errors={errors}
+              handleChange={handleChange}
+              handleFileChange={handleFileChange}
+              dragOver={dragOver}
+              setDragOver={setDragOver}
+            />
+          )}
+          {activeTab === 3 && (
+            <OnDutyForm
+              form={form}
+              errors={errors}
+              handleChange={handleChange}
+            />
+          )}
+          {errors.dateOrder && (
+            <p className="text-red-500 text-xs">
+              {errors.dateOrder}
+            </p>
+          )}
+
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            {loading ? (
+              <Loader size={20} message="Submitting..." />
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                Submit {TABS[activeTab]} Request
+              </>
+            )
+            }
+          </button>
+        </div>
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
       </div>
 
       <ToastContainer
         position="top-right"
         autoClose={4000}
         hideProgressBar={false}
+<<<<<<< HEAD
         newestOnTop
+=======
+        newestOnTop={false}
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable
         pauseOnHover
+<<<<<<< HEAD
         theme="light"
       />
     </div>
   );
 }
+=======
+        theme="dark"
+      />
+    </div>
+  );
+}
+>>>>>>> 657a9dd9288218e7941be49eb2a9dd15b352980b

@@ -11,9 +11,17 @@ const leaveSchema = new Schema({
         type: String,
         required: [true, "Leave type is required"],
         enum: {
-            values: ["Annual Leave", "Sick Leave", "Casual Leave", "Maternity Leave", "Paternity Leave", "Unpaid Leave"],
+            values: ["Annual Leave", "Sick Leave", "Casual Leave", "Unpaid Leave", "Compensatory Off", "Gate Pass", "OD (On Duty)"],
             message: "Invalid leave type"
         }
+    },
+    inTime: {
+        type: String,
+        default: null
+    },
+    outTime: {
+        type: String,
+        default: null
     },
     startDate: {
         type: Date,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
+import Loader from "../components/Loader"
 import { Camera, Pencil, Check, X } from "lucide-react"
 
 export default function Settings() {
@@ -64,7 +65,7 @@ export default function Settings() {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const updatedUser = await meResponse.json()
-      
+
       setProfile({
         name: updatedUser.fullName,
         email: updatedUser.email,
@@ -154,8 +155,8 @@ export default function Settings() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-100">
-        <div className="text-lg">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen p-8">
+        <Loader size="xl" message="Loading settings..." />
       </div>
     )
   }
@@ -170,8 +171,8 @@ export default function Settings() {
   // Reusable read-only field
   const ReadField = ({ label, value }) => (
     <div>
-      <label className="text-xs font-semibold text-blue-500 mb-1.5 block">{label}</label>
-      <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 select-none">
+      <label className="text-xs font-semibold text-blue-500 dark:text-blue-400 mb-1.5 block">{label}</label>
+      <div className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 text-sm text-slate-700 dark:text-slate-200 select-none">
         {value}
       </div>
     </div>
@@ -180,13 +181,13 @@ export default function Settings() {
   // Reusable editable field
   const EditField = ({ label, name, value, type = "text" }) => (
     <div>
-      <label className="text-xs font-semibold text-blue-500 mb-1.5 block">{label}</label>
+      <label className="text-xs font-semibold text-blue-500 dark:text-blue-400 mb-1.5 block">{label}</label>
       <input
         type={type}
         name={name}
         value={value}
         onChange={handleEditChange}
-        className="w-full px-4 py-2.5 rounded-xl border border-blue-400 bg-white text-sm text-slate-700 outline-none focus:border-blue-500 transition-colors duration-200"
+        className="w-full px-4 py-2.5 rounded-xl border border-blue-400 dark:border-blue-500 bg-white dark:bg-gray-700 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 transition-colors duration-200"
       />
     </div>
   )
@@ -194,15 +195,15 @@ export default function Settings() {
   return (
     <>
       {/* Page Title */}
-      <h1 className="text-2xl font-bold text-slate-800">
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
         Profile Information
       </h1>
-      <p className="text-sm text-slate-400 mb-6">
+      <p className="text-sm text-slate-400 dark:text-slate-500 mb-6">
         Update your personal details
       </p>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-sm mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 lg:p-6 shadow-sm mb-6">
 
         {/* Avatar + Name */}
         <div className="flex items-center gap-4 mb-6">
@@ -269,7 +270,7 @@ export default function Settings() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {isEditing ? (
             <>
-<EditField label="Name" name="fullName" value={editValues.fullName} />
+              <EditField label="Name" name="fullName" value={editValues.fullName} />
               <EditField label="Email" name="email" value={editValues.email} type="email" />
               <EditField label="Phone" name="phoneNumber" value={editValues.phoneNumber} />
               <EditField label="Designation" name="designation" value={editValues.designation} />
@@ -296,9 +297,9 @@ export default function Settings() {
       </div>
 
       {/* Change Password Card */}
-      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-sm">
+      <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-sm dark:bg-gray-800  ">
 
-        <h2 className="text-xl font-bold text-slate-800 mb-1">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-1">
           Change Password
         </h2>
         <p className="text-sm text-slate-400 mb-6">
@@ -317,7 +318,7 @@ export default function Settings() {
               value={passwords.currentPassword}
               onChange={handlePasswordChange}
               placeholder="••••••••••"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 outline-none focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 transition-colors duration-200"
             />
           </div>
 
@@ -331,7 +332,7 @@ export default function Settings() {
               value={passwords.newPassword}
               onChange={handlePasswordChange}
               placeholder="••••••••••"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 outline-none focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 transition-colors duration-200"
             />
           </div>
 
@@ -345,7 +346,7 @@ export default function Settings() {
               value={passwords.confirmPassword}
               onChange={handlePasswordChange}
               placeholder="••••••••••"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 outline-none focus:border-blue-500 transition-colors duration-200"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 transition-colors duration-200"
             />
           </div>
 
