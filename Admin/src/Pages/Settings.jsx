@@ -47,10 +47,10 @@ export default function Settings() {
   ];
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Settings</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">Settings</h1>
         <p className="text-gray-500 mb-6">
           Manage your system configuration and preferences
         </p>

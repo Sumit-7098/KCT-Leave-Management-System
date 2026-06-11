@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FiSearch,
   FiCheckCircle,
@@ -7,98 +7,11 @@ import {
   FiEye,
 } from "react-icons/fi";
 import { RiArrowDropDownLine } from "react-icons/ri";
-import { useState } from "react";
-
-const leaveData = [
-  {
-    id: "LR001",
-    name: "Sarah Johnson",
-    dept: "Production",
-    type: "Annual Leave",
-    start_date: "3/25/2026",
-    end_date: "3/28/2026",
-    days: 4,
-    applied: "3/15/2026",
-    status: "pending",
-  },
-  {
-    id: "LR002",
-    name: "Michael Chen",
-    dept: "Quality Control",
-    type: "Sick Leave",
-    start_date: "3/18/2026",
-    end_date: "3/19/2026",
-    days: 2,
-    applied: "3/16/2026",
-    status: "approved",
-  },
-  {
-    id: "LR003",
-    name: "Emily Rodriguez",
-    dept: "HR",
-    type: "Annual Leave",
-    start_date: "4/01/2026",
-    end_date: "4/05/2026",
-    days: 5,
-    applied: "3/10/2026",
-    status: "approved",
-  },
-  {
-    id: "LR004",
-    name: "David Thompson",
-    dept: "Logistics",
-    type: "Casual Leave",
-    start_date: "4/10/2026",
-    end_date: "4/12/2026",
-    days: 3,
-    applied: "3/20/2026",
-    status: "pending",
-  },
-  {
-    id: "LR005",
-    name: "Priya Sharma",
-    dept: "Quality Control",
-    type: "Sick Leave",
-    start_date: "4/02/2026",
-    end_date: "4/03/2026",
-    days: 2,
-    applied: "3/25/2026",
-    status: "rejected",
-  },
-  {
-    id: "LR006",
-    name: "Rahul Verma",
-    dept: "HR",
-    type: "Annual Leave",
-    start_date: "4/15/2026",
-    end_date: "4/18/2026",
-    days: 4,
-    applied: "3/28/2026",
-    status: "approved",
-  },
-  {
-    id: "LR007",
-    name: "Anita Desai",
-    dept: "Sales",
-    type: "Casual Leave",
-    start_date: "4/05/2026",
-    end_date: "4/06/2026",
-    days: 2,
-    applied: "3/22/2026",
-    status: "pending",
-  },
-  {
-    id: "LR008",
-    name: "Riya Nair",
-    dept: "IT",
-    type: "Annual Leave",
-    start_date: "4/20/2026",
-    end_date: "4/25/2026",
-    days: 6,
-    applied: "3/18/2026",
-    status: "approved",
-  },
-];
+import {
+  approveLeaveRequest,
+  fetchLeaveRequests,
+  rejectLeaveRequest,
+} from "../api/leaveAdminApi";
 
 export default function LeaveRequests() {
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -107,25 +20,56 @@ export default function LeaveRequests() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewModal, setViewModal] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [leaveData, setLeaveData] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetchLeaveRequests();
+        const leaves = Array.isArray(res?.leaves) ? res.leaves : [];
+        if (mounted) setLeaveData(leaves);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.response?.data?.message || e.message || "Failed to load");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const filteredData = leaveData.filter((item) => {
     const matchesStatus =
       statusFilter === "All Status" || item.status === statusFilter;
     const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.dept.toLowerCase().includes(searchTerm.toLowerCase());
+      (item.employee?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (item.id || "")
+        .toString()
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (item.employee?.dept || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
-  const pendingCount = leaveData.filter(
-    (item) => item.status === "pending",
-  ).length;
-  const approvedCount = leaveData.filter(
-    (item) => item.status === "approved",
-  ).length;
-  const rejectedCount = leaveData.filter(
-    (item) => item.status === "rejected",
-  ).length;
+  const pendingCount = leaveData.filter((item) => item.status === "pending")
+    .length;
+  const approvedCount = leaveData.filter((item) => item.status === "approved")
+    .length;
+  const rejectedCount = leaveData.filter((item) => item.status === "rejected")
+    .length;
+
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -178,102 +122,196 @@ export default function LeaveRequests() {
           </div>
         </div>
       </div>
-  
+
 
       {/* Search + Filter */}
-      <div className="bg-white p-4 rounded-2xl shadow flex gap-4 items-center mb-6">
-        <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl flex-1">
-          <FiSearch className="text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search by employee, department, or ID..."
-            className="bg-transparent outline-none w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {loading ? (
+        <div className="bg-white rounded-2xl shadow p-6 mb-6 text-gray-600">
+          Loading leave requests...
         </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setOpenDropdown(!openDropdown)}
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl"
-          >
-            {statusFilter}
-             <RiArrowDropDownLine className="text-2xl "/>
-          </button>
-
-          {openDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow  z-50">
-              {["All Status", "pending", "approved", "rejected"].map(
-                (status) => (
-                  <div
-                    key={status}
-                    onClick={() => {
-                      setStatusFilter(status);
-                      setOpenDropdown(false);
-                    }}
-                    className="px-4 py-3 hover:bg-gray-100 rounded-xl mb-2 mt-2  cursor-pointer capitalize"
-                  >
-                    {status}
-                  </div>
-                ),
-              )}
-            </div>
-          )}
+      ) : error ? (
+        <div className="bg-white rounded-2xl shadow p-6 mb-6 text-red-600">
+          {error}
         </div>
-      </div>
+      ) : (
+        <div className="bg-white p-4 rounded-2xl shadow flex gap-4 items-center mb-6">
+          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl flex-1">
+            <FiSearch className="text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search by employee, department, or ID..."
+              className="bg-transparent outline-none w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => setOpenDropdown(!openDropdown)}
+              className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl"
+            >
+              {statusFilter}
+              <RiArrowDropDownLine className="text-2xl " />
+            </button>
+
+            {openDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow z-50">
+                {["All Status", "pending", "approved", "rejected"].map(
+                  (status) => (
+                    <div
+                      key={status}
+                      onClick={() => {
+                        setStatusFilter(status);
+                        setOpenDropdown(false);
+                      }}
+                      className="px-4 py-3 hover:bg-gray-100 rounded-xl mb-2 mt-2 cursor-pointer capitalize"
+                    >
+                      {status}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow">
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-500/40 font-semibold text-gray-800">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-500/40 font-semibold text-gray-800">
           All Leave Requests ({leaveData.length})
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-gray-500 text-sm border-b border-gray-500/40">
-              <tr>
-                <th className="p-4">Request ID</th>
-                <th>Employee</th>
-                <th>Leave Type</th>
-                <th>Date Range</th>
-                <th>Days</th>
-                <th>Applied Date</th>
-                <th>Status</th>
-                <th>View</th>
-              </tr>
-            </thead>
+        {/* Desktop table (lg+) */}
+        <div className="hidden lg:block">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="text-gray-500 text-sm border-b border-gray-500/40">
+                <tr>
+                  <th className="p-4">Employee Login ID</th>
+                  <th>Employee</th>
+                  <th>Leave Type</th>
+                  <th>Date Range</th>
+                  <th>Days</th>
+                  <th>Applied Date</th>
+                  <th>Status</th>
+                  <th>View</th>
+                </tr>
+              </thead>
 
-            <tbody>
+              <tbody>
+                {filteredData.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-500/40 hover:bg-gray-50"
+                  >
+                    <td className="p-4">
+                      <p className="font-medium">{item.employee?.logInID}</p>
+                    </td>
+
+                    {/* Employee */}
+                    <td>
+                      <p className="font-medium">{item.employee?.name}</p>
+                      <p className="text-sm text-gray-500">{item.employee?.dept}</p>
+                    </td>
+
+                    {/* Leave Type */}
+                    <td>
+                      <span className="bg-gray-100 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+                        {item.leaveType}
+                      </span>
+                    </td>
+
+                    {/* Date Range */}
+                    <td className="whitespace-nowrap">
+                      {item.start_date} - {item.end_date}
+                    </td>
+
+                    {/* Days */}
+                    <td className="whitespace-nowrap">{item.days} days</td>
+
+                    {/* Applied */}
+                    <td className="whitespace-nowrap">{item.applied}</td>
+
+                    {/* Status */}
+                    <td>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm capitalize ${
+                          item.status === "approved"
+                            ? "bg-green-100 text-green-600"
+                            : item.status === "pending"
+                              ? "bg-orange-100 text-orange-500"
+                              : "bg-red-100 text-red-500"
+                        }`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="p-4 whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setSelectedRequest(item);
+                          setViewModal(true);
+                        }}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="View details"
+                        aria-label={`View details for request ${item.id}`}
+                      >
+                        <FiEye />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile list (below lg) */}
+        <div className="lg:hidden">
+          {filteredData.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">No leave requests found.</div>
+          ) : (
+            <div className="divide-y divide-gray-500/40">
               {filteredData.map((item) => (
-                <tr key={item.id} className="border-b border-gray-500/40 hover:bg-gray-50">
-                  <td className="p-4">{item.id}</td>
+                <div
+                  key={item.id}
+                  className="p-4 hover:bg-gray-50 transition"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-500">Employee Login ID</p>
+                      <p className="font-medium truncate">{item.employee?.logInID}</p>
 
-                  {/* Employee */}
-                  <td>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-500">{item.dept}</p>
-                  </td>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">Employee</p>
+                        <p className="font-medium truncate">{item.employee?.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{item.employee?.dept}</p>
+                      </div>
+                    </div>
 
-                  {/* Leave Type */}
-                  <td>
+                    <button
+                      onClick={() => {
+                        setSelectedRequest(item);
+                        setViewModal(true);
+                      }}
+                      className="shrink-0 flex items-center justify-center w-10 h-10 text-blue-600 hover:text-blue-800 bg-blue-50 rounded-xl hover:bg-blue-100"
+                      title="View details"
+                      aria-label={`View details for request ${item.id}`}
+                    >
+                      <FiEye />
+                    </button>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">
-                      {item.type}
+                      {item.leaveType}
                     </span>
-                  </td>
 
-                  {/* Start Date */}
-                  <td>{item.start_date} to {item.end_date}</td>
-
-                  {/* Days */}
-                  <td>{item.days} days</td>
-
-                  {/* Applied */}
-                  <td>{item.applied}</td>
-
-                  {/* Status */}
-                  <td>
                     <span
                       className={`px-3 py-1 rounded-full text-sm capitalize ${
                         item.status === "approved"
@@ -285,25 +323,29 @@ export default function LeaveRequests() {
                     >
                       {item.status}
                     </span>
-                  </td>
+                  </div>
 
-                  {/* Actions */}
-                  <td className="p-4">
-                    <button
-                      onClick={() => {
-                        setSelectedRequest(item);
-                        setViewModal(true);
-                      }}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                      title="View details"
-                    >
-                      <FiEye />
-                    </button>
-                  </td>
-                </tr>
+                  <div className="mt-3 text-sm text-gray-700">
+                    <p className="text-gray-500">Date Range</p>
+                    <p className="font-medium">
+                      {item.start_date} - {item.end_date}
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      <div>
+                        <p className="text-gray-500">Days</p>
+                        <p className="font-medium">{item.days} days</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Applied</p>
+                        <p className="font-medium">{item.applied}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
       </div>
       {viewModal && selectedRequest && (
@@ -333,17 +375,17 @@ export default function LeaveRequests() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <p className="font-medium text-gray-700 mb-1">Employee Name</p>
-                <p className="text-sm">{selectedRequest.name}</p>
+                <p className="text-sm">{selectedRequest.employee?.name}</p>
               </div>
 
               <div>
                 <p className="font-medium text-gray-700 mb-1">Department</p>
-                <p className="text-sm">{selectedRequest.dept}</p>
+                <p className="text-sm">{selectedRequest.employee?.dept}</p>
               </div>
 
               <div>
                 <p className="font-medium text-gray-700 mb-1">Leave Type</p>
-                <p className="text-sm capitalize">{selectedRequest.type}</p>
+                <p className="text-sm capitalize">{selectedRequest.leaveType}</p>
               </div>
 
               <div>
@@ -366,16 +408,16 @@ export default function LeaveRequests() {
                 <p className="text-sm">{selectedRequest.applied}</p>
               </div>
 
+
               <div>
                 <p className="font-medium text-gray-700 mb-1">Current Status</p>
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                    selectedRequest.status === "approved"
-                      ? "bg-green-100 text-green-800"
-                      : selectedRequest.status === "pending"
-                        ? "bg-orange-100 text-orange-800"
-                        : "bg-red-100 text-red-800"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${selectedRequest.status === "approved"
+                    ? "bg-green-100 text-green-800"
+                    : selectedRequest.status === "pending"
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-red-100 text-red-800"
+                    }`}
                 >
                   {selectedRequest.status}
                 </span>
@@ -415,14 +457,41 @@ export default function LeaveRequests() {
                 Cancel
               </button>
 
-              <button className="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors flex-1 sm:flex-none">
+              <button
+                onClick={async () => {
+                  try {
+                    await rejectLeaveRequest(selectedRequest.id, {});
+                    const res = await fetchLeaveRequests();
+                    setLeaveData(Array.isArray(res?.leaves) ? res.leaves : []);
+                    setSelectedRequest(null);
+                    setViewModal(false);
+                  } catch (e) {
+                    alert(e?.response?.data?.message || e.message || "Reject failed");
+                  }
+                }}
+                className="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-colors flex-1 sm:flex-none"
+              >
                 Reject
               </button>
 
-              <button className="px-6 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium transition-colors flex-1 sm:flex-none">
+              <button
+                onClick={async () => {
+                  try {
+                    await approveLeaveRequest(selectedRequest.id);
+                    const res = await fetchLeaveRequests();
+                    setLeaveData(Array.isArray(res?.leaves) ? res.leaves : []);
+                    setSelectedRequest(null);
+                    setViewModal(false);
+                  } catch (e) {
+                    alert(e?.response?.data?.message || e.message || "Approve failed");
+                  }
+                }}
+                className="px-6 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium transition-colors flex-1 sm:flex-none"
+              >
                 Approve
               </button>
             </div>
+
           </div>
         </div>
       )}

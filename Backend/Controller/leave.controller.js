@@ -1,4 +1,12 @@
 import Leave from "../Models/leave.model.js";
+import Admin from "../Models/admin.model.js";
+import User from "../Models/user.model.js";
+import { sendLeaveNotification } from "../utils/sendEmail.js";
+
+
+// NOTE: Existing implementation already emails leave notifications to approvers.
+// This task asks for admin UI notification icon as well, which is handled in the Admin UI.
+
 
 const getMyLeaves = async (req, res) => {
   try {
@@ -41,11 +49,11 @@ const createLeave = async (req, res) => {
     const userId = req.user._id;
 
     // Validation
-    if (!leaveType || !startDate || !endDate || !reason) {
+    if (!leaveType || !startDate || !endDate || !reason ) {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    if (new Date(startDate) >= new Date(endDate)) {
+    if (new Date(startDate) > new Date(endDate)) {
       return res.status(400).json({ message: "Start date must be before end date" });
     }
 
@@ -69,6 +77,22 @@ const createLeave = async (req, res) => {
     };
 
     const leave = await Leave.create(leaveData);
+
+    // Send notifications to approvers
+    try {
+      const populatedLeave = await Leave.findById(leave._id).populate('user', 'fullName');
+      // Fetch approvers from the Admin collection (admins folder) instead of User model.
+      const approvers = await Admin.find(
+        { role: { $in: ["Manager", "HR","Director"] } },
+        "email fullName"
+      );
+      if (approvers.length > 0) {
+        await sendLeaveNotification(leave._id, approvers);
+      }
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+      // Don't fail the leave creation
+    }
 
     res.status(201).json({
       message: "Leave request submitted successfully",

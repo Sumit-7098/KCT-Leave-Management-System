@@ -40,6 +40,10 @@ const userSchema = new Schema({
     address: {
         type: String,
         trim: true
+    },
+    avatarUrl: {
+        type: String,
+        default: ""
     }
 }, { timestamps: true })
 

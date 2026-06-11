@@ -1,19 +1,39 @@
-import { Smartphone } from 'lucide-react';
+import { Smartphone, CheckCircle, Clock, Circle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-const steps = [
-  { label: "You Apply", icon: <Smartphone />, bg: "bg-violet-500/20", text: "text-violet-300" },
-  { label: "Manager",   icon: <Smartphone />, bg: "bg-blue-500/20",   text: "text-blue-300"   },
-  { label: "Director",  icon: <Smartphone />,  bg: "bg-pink-500/20",   text: "text-pink-300"   },
-  { label: "Hr",        icon: <Smartphone />, bg: "bg-amber-500/20",  text: "text-amber-300"  },
-  { label: "Approved",  icon: <Smartphone />,  bg: "bg-emerald-500/20",text: "text-emerald-300"},
-]
+export default function ApprovalBanner({ status = 'fresh' }) {
+  const getSteps = (status) => {
+    const baseSteps = [
+      { label: "You Apply", color: 'green', complete: status !== 'fresh' },
+      { label: "Manager",   color: 'amber',   complete: status === 'approved' },
+      { label: "Director",  color: 'amber',   complete: status === 'approved' },
+      { label: "Hr",        color: 'amber',   complete: status === 'approved' },
+      { label: "Approved",  color: 'emerald', complete: status === 'approved' }
+    ];
 
-export default function ApprovalBanner() {
+    return baseSteps.map(step => ({
+      ...step,
+      bg: step.complete ? `bg-${step.color}-300` : 'bg-green-600',
+      text: step.complete ? `text-${step.color}-400` : 'text-slate-400',
+      icon: step.complete ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5" />
+    }));
+  };
+
+  const [currentStatus, setCurrentStatus] = useState(status);
+  const steps = getSteps(currentStatus);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('leaveStatus');
+    if (saved) {
+      setCurrentStatus(saved);
+    }
+  }, []);
+
   return (
     <div className="bg-linear-to-r from-blue-900 via-blue-700 to-blue-600 rounded-2xl p-4 lg:p-6 mb-6">
 
       <h2 className="text-white text-lg lg:text-xl font-bold mb-1">
-        3- Step Email Approval
+        {currentStatus === 'approved' ? '✅ Leave Approved' : currentStatus === 'applied' ? '📤 Request Submitted' : '3-Step Email Approval'}
       </h2>
       <p className="text-blue-200 text-xs lg:text-sm mb-4 lg:mb-6">
         When you apply – Director, Manager & HR – both must approve

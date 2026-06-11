@@ -2,30 +2,11 @@ import { Router } from "express";
 import { verifyToken } from "../middleware/auth.js";
 import { createLeave, getMyLeaves } from "../Controller/leave.controller.js";
 import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
+import cloudinary from "../utils/cloudinary.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Multer storage config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../uploads/leave-docs");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
-  }
-});
-
+// Use memory storage so controller can upload to Cloudinary
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/") || file.mimetype === "application/pdf") {
@@ -39,7 +20,40 @@ const upload = multer({
 const leaveRouter = Router();
 
 leaveRouter.get("/my-leaves", verifyToken, getMyLeaves);
-leaveRouter.post("/apply", verifyToken, upload.single("document"), createLeave);
+leaveRouter.post("/apply", verifyToken, upload.single("document"), async (req, res, next) => {
+  try {
+    if (req.file) {
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        return res.status(500).json({ message: "Cloudinary is not configured on server" });
+      }
+
+      const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+      const uploadRes = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+          dataUri,
+          {
+            folder: "kct-leave-management/documents",
+            resource_type: "auto",
+            transformation: req.file.mimetype.startsWith("image/") ? [{ quality: "auto:best" }] : undefined
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+      });
+
+      // Put Cloudinary URL in req.file so existing controller can keep using req.file.document path/name
+      req.file.path = uploadRes.secure_url;
+    }
+
+    return createLeave(req, res, next);
+  } catch (error) {
+    console.error("Cloudinary leave document upload error:", error);
+    return res.status(500).json({ message: "Failed to upload document" });
+  }
+});
 
 export default leaveRouter;
 

@@ -1,267 +1,111 @@
-import React, { useState } from "react";
-import { FiSearch, FiPlus, FiFilter, FiCheck ,FiEdit,FiTrash2} from "react-icons/fi";
+import React, { useEffect, useMemo, useState } from "react";
+import { FiSearch, FiFilter, FiCheck, FiEdit, FiTrash2 } from "react-icons/fi";
 import { RiArrowDropDownLine } from "react-icons/ri";
-
-
-const employees = [
-  // Production
-  {
-    name: "Sarah Johnson",
-    email: "sarah.johnson@containerco.com",
-    id: "EMP001",
-    dept: "Production",
-    role: "Production Manager",
-    annual: 15,
-    sick: 8,
-    initials: "SJ",
-  },
-  {
-    name: "Arjun Mehta",
-    email: "arjun.mehta@containerco.com",
-    id: "EMP002",
-    dept: "Production",
-    role: "Machine Operator",
-    annual: 12,
-    sick: 6,
-    initials: "AM",
-  },
-
-  // Quality Control
-  {
-    name: "Michael Chen",
-    email: "michael.chen@containerco.com",
-    id: "EMP003",
-    dept: "Quality Control",
-    role: "QC Inspector",
-    annual: 18,
-    sick: 10,
-    initials: "MC",
-  },
-  {
-    name: "Priya Sharma",
-    email: "priya.sharma@containerco.com",
-    id: "EMP004",
-    dept: "Quality Control",
-    role: "Quality Analyst",
-    annual: 14,
-    sick: 7,
-    initials: "PS",
-  },
-
-  // HR
-  {
-    name: "Emily Rodriguez",
-    email: "emily.rodriguez@containerco.com",
-    id: "EMP005",
-    dept: "HR",
-    role: "HR Manager",
-    annual: 12,
-    sick: 7,
-    initials: "ER",
-  },
-  {
-    name: "Rahul Verma",
-    email: "rahul.verma@containerco.com",
-    id: "EMP006",
-    dept: "HR",
-    role: "Recruiter",
-    annual: 10,
-    sick: 5,
-    initials: "RV",
-  },
-
-  // Logistics
-  {
-    name: "David Thompson",
-    email: "david.thompson@containerco.com",
-    id: "EMP007",
-    dept: "Logistics",
-    role: "Warehouse Supervisor",
-    annual: 20,
-    sick: 12,
-    initials: "DT",
-  },
-  {
-    name: "Neha Singh",
-    email: "neha.singh@containerco.com",
-    id: "EMP008",
-    dept: "Logistics",
-    role: "Inventory Manager",
-    annual: 16,
-    sick: 9,
-    initials: "NS",
-  },
-
-  // Maintenance
-  {
-    name: "Rohit Patel",
-    email: "rohit.patel@containerco.com",
-    id: "EMP009",
-    dept: "Maintenance",
-    role: "Maintenance Engineer",
-    annual: 14,
-    sick: 6,
-    initials: "RP",
-  },
-  {
-    name: "Karan Gupta",
-    email: "karan.gupta@containerco.com",
-    id: "EMP010",
-    dept: "Maintenance",
-    role: "Technician",
-    annual: 11,
-    sick: 5,
-    initials: "KG",
-  },
-
-  // Sales
-  {
-    name: "Anita Desai",
-    email: "anita.desai@containerco.com",
-    id: "EMP011",
-    dept: "Sales",
-    role: "Sales Manager",
-    annual: 18,
-    sick: 8,
-    initials: "AD",
-  },
-  {
-    name: "Vikram Rao",
-    email: "vikram.rao@containerco.com",
-    id: "EMP012",
-    dept: "Sales",
-    role: "Sales Executive",
-    annual: 13,
-    sick: 6,
-    initials: "VR",
-  },
-
-  // Finance
-  {
-    name: "Sonal Kapoor",
-    email: "sonal.kapoor@containerco.com",
-    id: "EMP013",
-    dept: "Finance",
-    role: "Finance Manager",
-    annual: 17,
-    sick: 7,
-    initials: "SK",
-  },
-  {
-    name: "Amit Jain",
-    email: "amit.jain@containerco.com",
-    id: "EMP014",
-    dept: "Finance",
-    role: "Accountant",
-    annual: 12,
-    sick: 5,
-    initials: "AJ",
-  },
-
-  // IT
-  {
-    name: "Riya Nair",
-    email: "riya.nair@containerco.com",
-    id: "EMP015",
-    dept: "IT",
-    role: "Software Engineer",
-    annual: 20,
-    sick: 10,
-    initials: "RN",
-  },
-  {
-    name: "Kunal Shah",
-    email: "kunal.shah@containerco.com",
-    id: "EMP016",
-    dept: "IT",
-    role: "System Administrator",
-    annual: 15,
-    sick: 7,
-    initials: "KS",
-  },
-];
-
-const departments = [
-  "All Departments",
-  "Production",
-  "Quality Control",
-  "HR",
-  "Logistics",
-  "Maintenance",
-  "Sales",
-  "Finance",
-  "IT",
-];
+import { deleteEmployee, fetchEmployees } from "../api/adminApi";
+import { useNavigate } from "react-router-dom";
 
 export default function EmployeeManagement() {
+  const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState("All Departments");
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  //  Filter employees
-  const filteredEmployees =
-    selectedDept === "All Departments"
-      ? employees
-      : employees.filter((emp) => emp.dept === selectedDept);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await fetchEmployees();
+        setEmployees(data?.employees || []);
+      } catch (e) {
+        setError("Failed to load employees");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  const departments = useMemo(() => {
+    const depts = Array.from(new Set(employees.map((e) => e.dept).filter(Boolean)));
+    return ["All Departments", ...depts];
+  }, [employees]);
+
+  const filteredEmployees = useMemo(() => {
+    const byDept =
+      selectedDept === "All Departments"
+        ? employees
+        : employees.filter((emp) => emp.dept === selectedDept);
+
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return byDept;
+
+    return byDept.filter((emp) => {
+      return (
+        (emp.name || "").toLowerCase().includes(q) ||
+        (emp.email || "").toLowerCase().includes(q) ||
+        (String(emp.id) || "").toLowerCase().includes(q)
+      );
+    });
+  }, [employees, selectedDept, searchTerm]);
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-800">
-            Employee Management
-          </h1>
-          <p className="text-gray-500">
-            Manage all employees and their information
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">Employee Management</h1>
+          <p className="text-gray-500">Manage all employees and their information</p>
         </div>
-
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-xl shadow hover:bg-blue-700">
-          <FiPlus /> Add Employee
-        </button>
       </div>
 
       {/* Search + Filter */}
-      <div className="bg-white p-4 rounded-2xl shadow flex gap-4 items-center mb-6">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl shadow flex flex-col md:flex-row md:items-center gap-3 mb-5 sm:mb-6">
         {/* Search */}
-        <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl flex-1">
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl flex-1">
           <FiSearch className="text-gray-500" />
           <input
             type="text"
             placeholder="Search by name, ID, or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent outline-none w-full"
           />
         </div>
 
-        {/*  Dropdown Filter */}
-        <div className="relative">
+        {/* Dropdown Filter */}
+        <div className="relative w-full md:w-auto">
           <button
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-4 bg-gray-100 px-4 py-2 rounded-xl hover:bg-gray-200"
+            className="w-full md:w-auto flex items-center justify-between md:justify-start gap-4 bg-gray-100 px-4 py-2 rounded-xl hover:bg-gray-200"
           >
-            <FiFilter />
-            {selectedDept}
-            <RiArrowDropDownLine className="text-2xl" />
+            <span className="flex items-center gap-3">
+              <FiFilter className="shrink-0" />
+              <span className="truncate max-w-[160px] sm:max-w-[220px]">{selectedDept}</span>
+            </span>
+            <RiArrowDropDownLine className="text-2xl shrink-0" />
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg  z-50">
-              {departments.map((dept, index) => (
+            <div className="absolute right-0 mt-2 w-64 sm:w-60 max-h-[70vh] overflow-auto bg-white rounded-xl shadow-lg z-50">
+              {departments.map((dept) => (
                 <div
-                  key={index}
+                  key={dept}
                   onClick={() => {
                     setSelectedDept(dept);
                     setOpen(false);
                   }}
-                  className={`flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-100 rounded-xl mb-2 ${
+                  className={`flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-100 rounded-xl mb-2 last:mb-0 ${
                     selectedDept === dept ? "bg-gray-100 font-medium" : ""
                   }`}
                 >
-                  <span>{dept}</span>
-
-                  {selectedDept === dept && (
-                    <FiCheck className="text-gray-600" />
-                  )}
+                  <span className="truncate pr-3">{dept}</span>
+                  {selectedDept === dept && <FiCheck className="text-gray-600 shrink-0" />}
                 </div>
               ))}
             </div>
@@ -270,85 +114,217 @@ export default function EmployeeManagement() {
       </div>
 
       {/* Table Card */}
-      <div className="bg-white rounded-2xl shadow">
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-500/40">
+        <div className="flex items-center gap-2 px-4 sm:px-6 py-4 border-b border-gray-500/40">
           <div className="w-1 h-6 bg-blue-600 rounded"></div>
-          <h2 className="font-semibold text-gray-800">
+          <h2 className="font-semibold text-gray-800 text-base sm:text-lg">
             All Employees ({filteredEmployees.length})
           </h2>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="text-gray-500 text-sm border-b border-gray-500/40 ">
+            <thead className="text-gray-500 text-sm border-b border-gray-500/40">
               <tr>
                 <th className="p-4">Name</th>
                 <th>Employee ID</th>
                 <th>Department</th>
-                <th>Role</th>
-                <th>Leave Balance</th>
-                <th>Status</th>
+                <th>Address</th>
+                <th>Phone Number</th>
                 <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredEmployees.map((emp, index) => (
-                <tr
-                  key={index}
-                  className="group border-b border-gray-500/40 hover:bg-gray-50 transition"
-                >
-                  <td className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white font-semibold">
-                      {emp.initials}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">{emp.name}</p>
-                      <p className="text-sm text-gray-500">{emp.email}</p>
-                    </div>
-                  </td>
-
-                  <td>{emp.id}</td>
-
-                  <td>
-                    <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
-                      {emp.dept}
-                    </span>
-                  </td>
-
-                  <td className="text-gray-700">{emp.role}</td>
-
-                  <td className="text-sm">
-                    <div>Annual: {emp.annual}</div>
-                    <div>Sick: {emp.sick}</div>
-                  </td>
-
-                  <td>
-                    <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">
-                      active
-                    </span>
-                  </td>
-
-                  {/* Action Buttons (show on hover) */}
-                  <td className="p-2">
-                    <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition duration-200">
-                      <button className="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200">
-                        <FiEdit />
-                      </button>
-
-                      <button className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200">
-                        <FiTrash2 />
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-gray-500">
+                    Loading employees...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-red-600">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-gray-500">
+                    No employees found.
+                  </td>
+                </tr>
+              ) : (
+                filteredEmployees.map((emp) => (
+                  <tr
+                    key={emp.id}
+                    className="group border-b border-gray-500/40 hover:bg-gray-50 transition"
+                  >
+                    <td className="p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white font-semibold shrink-0">
+                        {emp.avatar ? (
+                          <img
+                            src={emp.avatar}
+                            alt={emp.name}
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        ) : (
+                          emp.initials
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-800 truncate">{emp.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{emp.email}</p>
+                      </div>
+                    </td>
+
+                    <td className="whitespace-nowrap">{emp.id}</td>
+
+                    <td>
+                      <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm whitespace-nowrap">
+                        {emp.dept}
+                      </span>
+                    </td>
+
+                    <td className="text-sm max-w-[260px]">
+                      <div className="truncate">{emp.address}</div>
+                    </td>
+
+                    <td className="whitespace-nowrap">
+                      <span className="px-3 py-1 rounded-full text-md bg-gray-50 border border-gray-200 inline-block">
+                        {emp.phoneNumber}
+                      </span>
+                    </td>
+
+                    {/* Action Buttons */}
+                    <td className="p-2 whitespace-nowrap">
+                      <div className="flex gap-3 justify-end">
+                        <button
+                          type="button"
+                          className="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200"
+                          onClick={() => {
+                            navigate(`/employees/edit?id=${encodeURIComponent(emp.id)}`);
+                          }}
+                          aria-label={`Edit employee ${emp.name}`}
+                        >
+                          <FiEdit />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200"
+                          onClick={async () => {
+                            const ok = window.confirm(`Delete employee: ${emp.name}?`);
+                            if (!ok) return;
+
+                            await deleteEmployee(emp.id);
+                            setEmployees((prev) => prev.filter((x) => x.id !== emp.id));
+                          }}
+                          aria-label={`Delete employee ${emp.name}`}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile List */}
+        <div className="lg:hidden">
+          {loading ? (
+            <div className="p-6 text-center text-gray-500">Loading employees...</div>
+          ) : error ? (
+            <div className="p-6 text-center text-red-600">{error}</div>
+          ) : filteredEmployees.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">No employees found.</div>
+          ) : (
+            <div className="divide-y divide-gray-500/40">
+              {filteredEmployees.map((emp) => (
+                <div
+                  key={emp.id}
+                  className="p-4 hover:bg-gray-50 transition"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-500 text-white font-semibold shrink-0">
+                      {emp.avatar ? (
+                        <img
+                          src={emp.avatar}
+                          alt={emp.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        emp.initials
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{emp.name}</p>
+                          <p className="text-sm text-gray-500 truncate">{emp.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">ID</div>
+                          <div className="font-semibold text-gray-800 whitespace-nowrap">{emp.id}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
+                          {emp.dept}
+                        </span>
+                        <span className="text-sm bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
+                          {emp.phoneNumber}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 text-sm text-gray-700">
+                        <span className="text-gray-500">Address: </span>
+                        <span className="break-words">{emp.address}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex gap-3 justify-end">
+                    <button
+                      type="button"
+                      className="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200"
+                      onClick={() => {
+                        navigate(`/employees/edit?id=${encodeURIComponent(emp.id)}`);
+                      }}
+                      aria-label={`Edit employee ${emp.name}`}
+                    >
+                      <FiEdit />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-200"
+                      onClick={async () => {
+                        const ok = window.confirm(`Delete employee: ${emp.name}?`);
+                        if (!ok) return;
+
+                        await deleteEmployee(emp.id);
+                        setEmployees((prev) => prev.filter((x) => x.id !== emp.id));
+                      }}
+                      aria-label={`Delete employee ${emp.name}`}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
+

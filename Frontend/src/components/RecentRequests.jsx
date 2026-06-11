@@ -65,10 +65,10 @@ export default function RecentRequests() {
           </thead>
           <tbody>
             {recentLeaves.map((req, i) => (
-              <tr key={i} className="border-b border-slate-50 dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-750 transition-colors duration-200">
-                <td className="py-4 px-2 text-sm font-semibold text-slate-700 dark:text-slate-300">{req.type}</td>
-                <td className="py-4 px-2 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{req.dates}</td>
-                <td className="py-4 px-2 text-sm text-slate-500 dark:text-slate-300">{req.days}</td>
+              <tr key={i} className="border-b border-slate-50 dark:border-gray-700 hover:bg-slate-200 dark:hover:bg-gray-900 transition-colors duration-200">
+                <td className="py-4 px-2 text-sm font-semibold text-slate-900 dark:text-slate-300">{req.type}</td>
+                <td className="py-4 px-2 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{req.dates}</td>
+                <td className="py-4 px-2 text-sm text-slate-600 dark:text-slate-300">{req.days}</td>
                 <td className="py-4 px-2">
                   <div className="flex flex-wrap items-center gap-1">
                     {req.steps.map((step, j) => (

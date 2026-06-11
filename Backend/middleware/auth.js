@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../Models/user.model.js";
+import Admin from "../Models/admin.model.js";
 
 const generateToken = (payload) => {
     return jwt.sign({ payload }, process.env.JWT_SECRET, {
@@ -20,13 +21,22 @@ const verifyToken = async (req, res, next) => {
             return res.status(401).json({ message: "No token, authorization denied" });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET );
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Try to authenticate as a User first.
         const user = await User.findById(decoded.payload).select('-logInPassword');
-        if (!user) {
+        if (user) {
+            req.user = user;
+            return next();
+        }
+
+        // If not a user, try Admin.
+        const admin = await Admin.findById(decoded.payload).select('-logInPassword');
+        if (!admin) {
             return res.status(401).json({ message: "Invalid token" });
         }
 
-        req.user = user;
+        req.user = admin;
         next();
     } catch (error) {
         res.status(401).json({ message: "Invalid token" });
@@ -34,3 +44,4 @@ const verifyToken = async (req, res, next) => {
 };
 
 export { generateToken, verifyToken };
+

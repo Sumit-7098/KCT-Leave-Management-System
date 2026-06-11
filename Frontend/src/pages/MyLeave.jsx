@@ -79,7 +79,7 @@ export default function MyLeave() {
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap
               ${activeFilter === f
                 ? filterStyles[f]
-                : "bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-750"
+                : "bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-slate-400 hover:bg-slate-700 dark:hover:text-gray-200 dark:hover:bg-gray-750"
               }`}
           >
             {f}
@@ -183,7 +183,7 @@ export default function MyLeave() {
               {filtered.map((row, i) => (
                 <tr
                   key={i}
-                  className="border-b border-slate-50 hover:bg-slate-50 transition-colors duration-200"
+                  className="border-b border-slate-50 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors duration-200"
                 >
                   <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {row.type}

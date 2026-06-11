@@ -1,0 +1,12 @@
+1. Login page for admin                             --> Done
+2. Emplyoee backend connection
+    a. fix avatar img                               --> Done
+    b. remove role                                  --> Done
+    c. address                                      --> Done
+    d. edit and delete functionality                --> Done
+3. LoggedIn admin detail in header                  --> Done
+4. leave request db connection                      --> Done
+5. leave balance manage
+6. backend email notification change                --> Done
+7. dark theme 
+8. make responsive                                  --> Done

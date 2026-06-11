@@ -2,39 +2,6 @@ import React from "react";
 import { FaFileAlt, FaCheckCircle } from "react-icons/fa";
 import { IoDocumentText } from "react-icons/io5";
 
-const activities = [
-  {
-    name: "Sarah Johnson",
-    action: "applied for Annual Leave (4 days)",
-    time: "Mar 15, 10:30 AM",
-    type: "request",
-  },
-  {
-    name: "Michael Chen",
-    action: "Sick Leave request approved",
-    time: "Mar 16, 09:15 AM",
-    type: "approved",
-  },
-  {
-    name: "David Thompson",
-    action: "Casual Leave request rejected",
-    time: "Mar 19, 02:20 PM",
-    type: "rejected",
-  },
-  {
-    name: "Maria Garcia",
-    action: "applied for Annual Leave (6 days)",
-    time: "Mar 16, 11:45 AM",
-    type: "request",
-  },
-  {
-    name: "Robert Lee",
-    action: "Casual Leave request approved",
-    time: "Mar 18, 04:30 PM",
-    type: "approved",
-  },
-];
-
 const getStyles = (type) => {
   switch (type) {
     case "approved":
@@ -61,10 +28,9 @@ const getStyles = (type) => {
   }
 };
 
-const RecentActivity = () => {
+const RecentActivity = ({ activities = [] }) => {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-md w-full">
-      
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-2 h-8 bg-green-600 rounded-full"></div>
@@ -73,47 +39,113 @@ const RecentActivity = () => {
         </h2>
       </div>
 
-      {/* List */}
-      <div className="space-y-4">
+      {/* Cards for small screens */}
+      <div className="md:hidden grid grid-cols-1 gap-4">
         {activities.map((item, index) => {
-          const style = getStyles(item.type);
+          const style = getStyles(item?.type);
 
           return (
             <div
               key={index}
-              className="flex items-center justify-between pb-4 border-b border-gray-300/50 last:border-none"
+              className="bg-gray-50 border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
             >
-              {/* Left */}
-              <div className="flex items-center gap-4">
-                
-                {/* Icon */}
+              {/* Top Row */}
+              <div className="flex items-start justify-between gap-3">
                 <div
-                  className={`w-12 h-12 flex items-center justify-center rounded-full text-xl text-white shadow-md ${style.bg}`}
+                  className={`w-11 h-11 flex items-center justify-center rounded-full text-xl text-white shadow-md ${style.bg}`}
                 >
                   {style.icon}
                 </div>
 
-                {/* Text */}
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    <span className="font-semibold">{item.name}</span>{" "}
-                    {item.action}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {item.time}
-                  </p>
-                </div>
+                <span
+                  className={`text-sm px-3 py-1 rounded-full bg-gray-200 ${style.text} whitespace-nowrap`}
+                >
+                  {style.label}
+                </span>
               </div>
 
-              {/* Right Label */}
-              <span
-                className={`text-sm px-3 py-1 rounded-full bg-gray-200 ${style.text}`}
-              >
-                {style.label}
-              </span>
+              {/* Text */}
+              <p className="text-sm font-medium text-gray-800 mt-3">
+                <span className="font-semibold">{item?.name || ""}</span>{" "}
+                {item?.action || ""}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{item?.time || ""}</p>
             </div>
           );
         })}
+      </div>
+
+      {/* Table for medium+ screens */}
+      <div className="hidden md:block">
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-separate border-spacing-0">
+            <thead>
+              <tr>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 border-b border-gray-200">
+                  Status
+                </th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 border-b border-gray-200">
+                  Activity
+                </th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3 border-b border-gray-200">
+                  Time
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {activities.map((item, index) => {
+                const style = getStyles(item?.type);
+
+                return (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 flex items-center justify-center rounded-full text-base text-white shadow-sm ${style.bg}`}
+                        >
+                          {style.icon}
+                        </div>
+                        <span
+                          className={`text-sm px-3 py-1 rounded-full bg-gray-200 ${style.text} whitespace-nowrap`}
+                        >
+                          {style.label}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 border-b border-gray-100">
+                      <div className="text-sm text-gray-800">
+                        <span className="font-semibold">{item?.name || ""}</span>{" "}
+                        {item?.action || ""}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 border-b border-gray-100">
+                      <span className="text-xs text-gray-500">
+                        {item?.time || ""}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {activities.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-10 text-center text-sm text-gray-500"
+                  >
+                    No recent activities found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
